@@ -41,7 +41,7 @@ def get_session():
 def get_datas(number, location):
     datas = []
     request_count_local = 0
-    logger.info(f'Dealing with No.{number + 1} location：{location}')
+    logger.info(f'Dealing with No.{number} location：{location}')
     # Initialize fail count
     fail_count = 0
     session = get_session()
