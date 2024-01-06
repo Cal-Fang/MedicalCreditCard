@@ -11,9 +11,9 @@ from parsel import Selector
 # Construct the relative path to the zipcodes_list.csv file
 zipcode_file_path = os.path.join('results', 'zipcodes.csv')
 # Construct the relative path to the log file
-log_file_path = os.path.join('results', 'goalphaeon.log')
+log_file_path = os.path.join('results', 'alphaeon.log')
 # Construct the relative path to the result file
-result_file_path = os.path.join('results', 'goalphaeon.csv')
+result_file_path = os.path.join('results', 'alphaeon.csv')
 
 # Set up log file
 logger.add(log_file_path, level='INFO', encoding='utf-8')
@@ -21,7 +21,7 @@ logger.add(log_file_path, level='INFO', encoding='utf-8')
 # Set up proxies
 proxies_list = list()
 proxies_list.append({'https': 'http://Account:Password@Address:Port'})
-    # goalphaeon has a very robust IP screening and banning mechanism. In order to run all zipcodes, I had to
+    # Alphaeon caredit card's website has a very robust IP screening and banning mechanism. In order to run all zipcodes, I had to
     # purchase IP proxies from https://www.roxlabs.cn/. Please change this to your setup if you want to use/test this script.
 
 def get_datas(number, location):
