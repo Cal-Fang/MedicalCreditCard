@@ -55,7 +55,7 @@ alphaeon <- read_csv("results/alphaeon.csv") %>%
          specialty=specialties) %>% 
   select(-location)
 
-wellsfargo <- read_csv("results/wellsfargo.csv") %>% 
+wellsfargoHA <- read_csv("results/wellsfargoHA.csv") %>% 
   distinct() %>% 
   rename(address=address1,
          specialty=specialties) %>% 
@@ -72,7 +72,7 @@ alphaeon <- alphaeon %>%
          city = str_to_title(city)) %>% 
   distinct(address, phone, .keep_all=TRUE) 
 
-wellsfargo <- wellsfargo %>% 
+wellsfargoHA <- wellsfargoHA %>% 
   mutate(address = str_to_title(address),
          city = str_to_title(city)) %>% 
   distinct(address, phone, .keep_all=TRUE) 
@@ -84,7 +84,7 @@ carecredit <- carecredit %>%
   filter(!grepl("Pet|Vet|Animal|Equine", specialty) & 
            !grepl("\\bPet\\b|\\bVet\\b|Veterinary|Veterinarian|Animal|Equine", name))
 
-wellsfargo <- wellsfargo %>% 
+wellsfargoHA <- wellsfargoHA %>% 
   filter(!grepl("Veterinary", specialty))
 
 
@@ -111,7 +111,7 @@ carecredit$specialty[carecredit$specialty=="Dermatologist"] <- "Dermatology"
 carecredit$specialty[carecredit$specialty=="OB/GYN"] <- "Obstetrics & gynecology"
 
 # Build a clean specialty list
-raw_list <- unique(c(carecredit$specialty, alphaeon$specialty, wellsfargo$specialty))
+raw_list <- unique(c(carecredit$specialty, alphaeon$specialty, wellsfargoHA$specialty))
 
 dental <- grep("Den|dontist|dontics|Oral", raw_list, value=TRUE)
 vision <- grep("Eye|Ophth|Cataract|LASIK|Retina|Optometrist|Vision", raw_list, value=TRUE)
@@ -150,7 +150,7 @@ alphaeon_clean <- alphaeon %>%
   distinct() %>% 
   filter(!specialty_re %in% c("Unrelated", "Medical Equipment", "Unknown/Others"))
 
-wellsfargo_clean <- wellsfargo %>% 
+wellsfargoHA_clean <- wellsfargoHA %>% 
   merge(regroup, all.x=TRUE) %>% 
   distinct() %>% 
   filter(!specialty_re %in% c("Unrelated", "Medical Equipment", "Unknown/Others"))
@@ -160,7 +160,7 @@ wellsfargo_clean <- wellsfargo %>%
 # Bind the three dataframes
 mcc_clean <- bind_rows(list(carecredit=carecredit_clean, 
                             alphaeon=alphaeon_clean, 
-                            wellsfargo=wellsfargo_clean), .id = 'credit') 
+                            wellsfargoHA=wellsfargoHA_clean), .id = 'credit') 
 
 # Drop the duplicates caused by regrouping the specialty
 mcc_clean <- mcc_clean %>% 
@@ -176,7 +176,7 @@ test <- mcc_clean %>%
 
 # STEP 6
 # Save the data
-save(carecredit_clean, alphaeon_clean, wellsfargo_clean,
+save(carecredit_clean, alphaeon_clean, wellsfargoHA_clean,
      mcc_clean, 
      file="results/cleaned.Rdata")
 
