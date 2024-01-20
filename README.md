@@ -9,3 +9,9 @@ Surprisingly, there is no officially recognized list of U.S. ZIP codes released 
 The script used for this step is named 00_ziplist.py. The result is saved as zipcodes.csv in the result folder.
 
 ## STEP 1 Scrape information from the three webpages
+
+214858 rows in CareCredit
+8087 rows in Alphaeon
+3421 rows in WellsFargo HA
+
+##
