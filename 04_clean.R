@@ -17,11 +17,14 @@
 ##   1. CareCredit and Comenity's Alphaeon card both listed veterinary partners on their website
 ##      which is not of interest to us and needs to be dropped.
 ##   2. CareCredit and Comenity's Alphaeon card both listed very detailed specialty information for 
-##      some partners that provided multiple services on their website. I will split such specialty information
-##      for later analysis. For instance, if a practice' specialty were "OB/GYN, Pediatrician", it would be split
-##      to two rows with specialty being "OB/GYN" and "Pediatrician" and everything else the same.
-##   3. Some specialty info were too detailed and not very important for this project so we are gonna regroup them.
-##
+##      some partners that provided multiple services on their website. I will split such specialty 
+##      information for later analysis. For instance, if a practice' specialty were "OB/GYN, 
+##      Pediatrician", it would be split to two rows with specialty being "OB/GYN" and "Pediatrician" 
+##      and everything else the same.
+##   3. Some specialty info were too detailed and not very important for this project so we are gonna 
+##      regroup them. This process would create some duplicates. I also dropped these duplicates.
+##   4. There are some practices located in US territories. These are not so relevant to this project 
+##      so I dropped them.
 ## ---------------------------
 
 ## set working directory for Mac and PC
@@ -167,16 +170,15 @@ mcc_clean <- mcc_clean %>%
   select(-specialty) %>% 
   distinct()
 
-# Duplicate suspect
-test <- mcc_clean %>% 
-  group_by(phone) %>% 
-  summarize(count = n()) %>% 
-  filter(count > 1)
-
 
 # STEP 6
+# Only keep the practices in 50 states and DC
+mcc_clean <- mcc_clean %>% 
+  filter(state %in% c(state.abb, "DC"))
+
+
+# STEP 7
 # Save the data
-save(carecredit_clean, alphaeon_clean, wellsfargoHA_clean,
-     mcc_clean, 
+save(mcc_clean, 
      file="results/cleaned.Rdata")
 
