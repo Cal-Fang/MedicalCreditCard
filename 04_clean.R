@@ -124,10 +124,16 @@ physical <- grep("Phy", raw_list, value=TRUE)
 other <- grep("Cord|Other|Lice", raw_list, value=TRUE)
 unrelated <- grep("Medspa|Spa|Beauty|Supplements|Mattresses|Funeral", raw_list, value=TRUE)
 equipment <- grep("Equipment|Wheelchair|Prosthetics|Monitors", raw_list, value=TRUE)
-marginmed <- grep("Pharm|Speech|Acupu|Chiro|Home", raw_list, value=TRUE)
+marginmed <- grep("Pharm|Speech|Acupu|Chiro|Home|Osteopath", raw_list, value=TRUE)
+radio <- grep("Radiology", raw_list, value=TRUE)
+family <- grep("General Practitioner", raw_list, value=TRUE)
+vascular <- grep("Vascular", raw_list, value=TRUE)
+sleep <- grep("Sleep", raw_list, value=TRUE)
+surgery <- grep("Surgery Center", raw_list, value=TRUE)
 
 rest <- raw_list %>% 
-  setdiff(c(dental, vision, audio, cosmetic, physical, other, unrelated, equipment, marginmed))
+  setdiff(c(dental, vision, audio, cosmetic, physical, marginmed, radio, family, vascular, sleep, surgery,
+            other, unrelated, equipment))
 
 regroup <- bind_rows(
   data.frame(specialty = dental, specialty_re = "Dentistry"),
@@ -139,6 +145,11 @@ regroup <- bind_rows(
   data.frame(specialty = unrelated, specialty_re = "Unrelated"),
   data.frame(specialty = equipment, specialty_re = "Medical Equipment"),
   data.frame(specialty = marginmed, specialty_re = "Supplmental/Alternative Medicine"),
+  data.frame(specialty = radio, specialty_re = "Imaging & Radiology"),
+  data.frame(specialty = family, specialty_re = "Family & General Practitioner"),
+  data.frame(specialty = vascular, specialty_re = "Vascular (Vein) Surgeon"),
+  data.frame(specialty = sleep, specialty_re = "Sleep Medicine"),
+  data.frame(specialty = surgery, specialty_re = "Outpatient Surgery Centers"),
   data.frame(specialty = rest, specialty_re = rest)
 )
 
