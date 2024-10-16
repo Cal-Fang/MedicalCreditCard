@@ -1,6 +1,0 @@
-[38;5;237m`as.tibble()` was deprecated in tibble 2.0.0.
-[36mℹ[38;5;237m Please use `as_tibble()` instead.
-[36mℹ[38;5;237m The signature and semantics have changed, see `?as_tibble`.
-[90mThis warning is displayed once every 8 hours.[38;5;237m
-[90mCall `lifecycle::last_lifecycle_warnings()` to see where this[38;5;237m
-[90mwarning was generated.[38;5;237m[39m

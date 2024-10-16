@@ -20,7 +20,6 @@ opts_chunk$set(message=FALSE, warning=FALSE)
 load("results/cleaned.Rdata")
 ```
 
-The dataset we have cleaned included
 ```{r specialties, include=FALSE}
 bySpe <- mcc_clean %>% 
   group_by(specialty_re) %>% 
@@ -68,10 +67,11 @@ specialtyProp_iqvia <- fuzzyjoin::stringdist_join(bySpe, denomSpe,
   slice_min(order_by=dist, n=1) %>% 
   filter(dist < 0.50 | specialty_re %in% c("Internist", "Imaging & Radiology")) %>% 
   filter(!(specialty_re == "Imaging & Radiology" & specialty_iqvia == "Family medicine")) %>% 
-  filter(!specialty_re %in% c("Nephrology", "Podiatrist", "Nutritionist and Dietician", "Allergy/Immunologist", 
-                              "Endocrinology", "General Practitioner", 
+  filter(!specialty_re %in% c("Nephrology", "Podiatrist", "Nutritionist and Dietician", 
+                              "Allergy/Immunologist", "Endocrinology", "General Practitioner", 
                               "Outpatient Surgery Centers", "Supplmental/Alternative Medicine", 
-                              "Colorectal Surgeon/Proctologist", "Rheumatologist")) %>% 
+                              "Colorectal Surgeon/Proctologist", "Rheumatologist", "Pharmacies",
+                              "Home Healthcare")) %>% 
   select(-c("phyCount", "dist")) %>% 
   mutate(prop = count / orgCount) %>% 
   arrange(prop)
@@ -100,35 +100,28 @@ dental <- bySpe %>%
   mutate(prop = count / orgCount) 
 ```
 
-```{r supplement, include=FALSE}
-supplement_denom <- CBP2021 %>% 
+```{r pharm, include=FALSE}
+pharm_denom <- CBP2021 %>% 
   filter(state <= 56) %>% # 50 states and DC correspond to the codes smaller than or equal to 56
-  filter(NAICS2017 %in% c("621310", # "Offices of Chiropractors"
-                          "621340", # "Offices of Physical, Occupational and Speech Therapists, and Audiologists",
-                          "446110", # "Pharmacies and Drug Stores"
-                          "621610"  # "Home Health Care Services"
-                          )) %>% 
+  filter(NAICS2017 == "446110") %>% # "Pharmacies and Drug Stores"
   group_by(.) %>% 
   summarise(orgCount = sum(ESTAB))
 
-supplement <- bySpe %>% 
-  filter(specialty_re %in% c("Audiology", "Supplmental/Alternative Medicine")) %>% 
-  group_by(.) %>% 
-  summarise(specialty_re = "Supplmental/Alternative Medicine",
-            count = sum(count)) %>% 
-  cbind(supplement_denom) %>% 
+pharm <- bySpe %>% 
+  filter(specialty_re == "Pharmacies") %>% 
+  cbind(pharm_denom) %>% 
   mutate(prop = count / orgCount) 
 ```
 
 ```{r podia, include=FALSE}
 podiatrist_denom <- CBP2021 %>% 
   filter(state <= 56) %>% # 50 states and DC correspond to the codes smaller than or equal to 56
-  filter(NAICS2017 %in% c("621391")) %>% # "Offices of Podiatrists"
+  filter(NAICS2017 == "621391") %>% # "Offices of Podiatrists"
   group_by(NAICS2017_LABEL) %>% 
   summarise(orgCount = sum(ESTAB))
 
 podiatrist <- bySpe %>% 
-  filter(specialty_re %in% c("Podiatrist")) %>% 
+  filter(specialty_re == "Podiatrist") %>% 
   cbind(podiatrist_denom) %>% 
   mutate(prop = count / orgCount) 
 ```
@@ -136,13 +129,26 @@ podiatrist <- bySpe %>%
 ```{r medlab, include=FALSE}
 medlab_denom <- CBP2021 %>% 
   filter(state <= 56) %>% # 50 states and DC correspond to the codes smaller than or equal to 56
-  filter(NAICS2017 %in% c("621511")) %>% # "Medical Laboratories"
+  filter(NAICS2017 == "621511") %>% # "Medical Laboratories"
   group_by(NAICS2017_LABEL) %>% 
   summarise(orgCount = sum(ESTAB))
 
 medlab <- bySpe %>% 
-  filter(specialty_re %in% c("Medical Labs")) %>% 
+  filter(specialty_re == "Medical Labs") %>% 
   cbind(medlab_denom) %>% 
+  mutate(prop = count / orgCount) 
+```
+
+```{r chiro, include=FALSE}
+chrio_denom <- CBP2021 %>% 
+  filter(state <= 56) %>% # 50 states and DC correspond to the codes smaller than or equal to 56
+  filter(NAICS2017 == "621310") %>% # "Offices of Chiropractors"
+  group_by(NAICS2017_LABEL) %>% 
+  summarise(orgCount = sum(ESTAB))
+
+chrio <- bySpe %>% 
+  filter(specialty_re == "Chiropractor") %>% 
+  cbind(chrio_denom) %>% 
   mutate(prop = count / orgCount) 
 ```
 I regrouped some of the specialties to make sure the comparison object is consistent. After such cleaning work, we have obtained the following table.
@@ -150,7 +156,7 @@ I regrouped some of the specialties to make sure the comparison object is consis
 #  Table 1: MCC Penetration Rate By Specialty
 ```{r tab1, echo=FALSE}
 tab1 <- specialtyProp_iqvia %>% 
-  rbind(dental, supplement, podiatrist, medlab) %>% 
+  rbind(dental, pharm, podiatrist, medlab, chrio) %>% 
   arrange(desc(prop)) %>% 
   select(-NAICS2017_LABEL, -specialty_iqvia) %>% 
   mutate(prop = round(prop * 100, 2))
@@ -161,8 +167,7 @@ ENT_cosmetic_vision <- bySpe %>%
          prop = NA)
 
 rest <- bySpe %>% 
-  filter(!specialty_re %in% c(tab1$specialty_re, ENT_cosmetic_vision$specialty_re, 
-                              "Audiology", "Supplemental/Alternative Medicine")) %>% 
+  filter(!specialty_re %in% c(tab1$specialty_re, ENT_cosmetic_vision$specialty_re)) %>% 
   group_by(.) %>% 
   summarise(count = sum(count)) %>% 
   mutate(specialty_re = "Others",
@@ -197,7 +202,8 @@ add_footnote(tab1_table, label=footnote_text, notation="none")
 \newpage
 ```{r tab2, echo=FALSE}
 tab2 <- bySpe %>% 
-  filter(!specialty_re %in% c(tab1$Specialty, "Audiology", "Supplmental/Alternative Medicine")) 
+  filter(!specialty_re %in% c(tab1$Specialty, "Audiology", "Supplmental/Alternative Medicine")) %>% 
+  arrange(desc(count))
 
 colnames(tab2) <- c("Specialty", "MCC Partner Number")
 tab2 %>%
@@ -205,3 +211,7 @@ tab2 %>%
   kable_styling()
 ```
 
+There are some other specialties that we can find corresponding denominators in CBP data but they were of strong interest so we did not bother to include them in table 1. They are:
+
+- "621340", # "Offices of Physical, Occupational and Speech Therapists, and Audiologists"
+- "621610", # "Home Health Care Services"

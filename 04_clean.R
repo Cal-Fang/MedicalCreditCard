@@ -121,10 +121,11 @@ vision <- grep("Eye|Ophth|Cataract|LASIK|Retina|Optometrist|Vision", raw_list, v
 audio <- grep("Hearing|Audio", raw_list, value=TRUE)
 cosmetic <- grep("Hair|Cosmetic|Plastic|Aesthetics|Weight", raw_list, value=TRUE)
 physical <- grep("Phy", raw_list, value=TRUE)
-other <- grep("Cord|Other|Lice", raw_list, value=TRUE)
+other <- grep("Cord|Other|Lice", raw_list, value=TRUE) # Here the other vector mistakenly includes "other cosmetic" but 
+                                                       # these would be kept through the cosmetic group anyway
 unrelated <- grep("Medspa|Spa|Beauty|Supplements|Mattresses|Funeral", raw_list, value=TRUE)
 equipment <- grep("Equipment|Wheelchair|Prosthetics|Monitors", raw_list, value=TRUE)
-marginmed <- grep("Pharm|Speech|Acupu|Chiro|Home|Osteopath", raw_list, value=TRUE)
+pharm <- grep("Pharm", raw_list, value=TRUE)
 radio <- grep("Radiology", raw_list, value=TRUE)
 family <- grep("General Practitioner", raw_list, value=TRUE)
 vascular <- grep("Vascular", raw_list, value=TRUE)
@@ -132,7 +133,7 @@ sleep <- grep("Sleep", raw_list, value=TRUE)
 surgery <- grep("Surgery Center", raw_list, value=TRUE)
 
 rest <- raw_list %>% 
-  setdiff(c(dental, vision, audio, cosmetic, physical, marginmed, radio, family, vascular, sleep, surgery,
+  setdiff(c(dental, vision, audio, cosmetic, physical, pharm, radio, family, vascular, sleep, surgery,
             other, unrelated, equipment))
 
 regroup <- bind_rows(
@@ -144,7 +145,7 @@ regroup <- bind_rows(
   data.frame(specialty = other, specialty_re = "Unknown/Others"),
   data.frame(specialty = unrelated, specialty_re = "Unrelated"),
   data.frame(specialty = equipment, specialty_re = "Medical Equipment"),
-  data.frame(specialty = marginmed, specialty_re = "Supplmental/Alternative Medicine"),
+  data.frame(specialty = pharm, specialty_re = "Pharmacies"),
   data.frame(specialty = radio, specialty_re = "Imaging & Radiology"),
   data.frame(specialty = family, specialty_re = "Family & General Practitioner"),
   data.frame(specialty = vascular, specialty_re = "Vascular (Vein) Surgeon"),
@@ -153,7 +154,7 @@ regroup <- bind_rows(
   data.frame(specialty = rest, specialty_re = rest)
 )
 
-# Regroup and combine
+# Regroup the original data and drop business that should not be considered as medical practices
 carecredit_clean <- carecredit %>% 
   merge(regroup, all.x=TRUE) %>% 
   distinct() %>% 
@@ -181,14 +182,12 @@ mcc_clean <- mcc_clean %>%
   select(-specialty) %>% 
   distinct()
 
-
-# STEP 6
 # Only keep the practices in 50 states and DC
 mcc_clean <- mcc_clean %>% 
   filter(state %in% c(state.abb, "DC"))
 
 
-# STEP 7
+# STEP 6
 # Save the data
 save(mcc_clean, 
      file="results/cleaned.Rdata")
