@@ -114,7 +114,8 @@ alphaeon <- alphaeon %>%
 # Rename some specialty for consistency
 carecredit$specialty[carecredit$specialty=="Outpatient Surgery Center"] <- "Surgery Centers"
 carecredit$specialty[carecredit$specialty=="Dermatologist"] <- "Dermatology"
-carecredit$specialty[carecredit$specialty=="OB/GYN"] <- "Obstetrics & gynecology"
+carecredit$specialty[carecredit$specialty=="OB/GYN"] <- "Obstetrics & Gynecology"
+carecredit$specialty[carecredit$specialty=="Urgent Care / Walk-in Clinics"] <- "Urgent Care/Walk-in Clinics"
 
 # Build a clean specialty list
 raw_list <- unique(c(carecredit$specialty, alphaeon$specialty, wellsfargoHA$specialty))

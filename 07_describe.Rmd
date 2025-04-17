@@ -174,7 +174,7 @@ includeBack <- bySpe %>%
                              "Ear, Nose & Throat",
                              "Behavioral Health",
                              "Vascular Surgery",
-                             "Urgent Care / Walk-in Clinics",
+                             "Urgent Care/Walk-in Clinics",
                              "Sleep Medicine",
                              "Ear, Nose & Throat",
                              "Allergy/Immunologist",
