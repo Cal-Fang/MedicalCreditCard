@@ -9,11 +9,11 @@ from concurrent.futures import ThreadPoolExecutor
 from parsel import Selector
 
 # Construct the relative path to the zipcodes_list.csv file
-zipcode_file_path = os.path.join('results', 'zipcodes.csv')
+zipcode_file_path = os.path.join('data', 'zipcodes.csv')
 # Construct the relative path to the log file
-log_file_path = os.path.join('results', 'alphaeon.log')
+log_file_path = os.path.join('data', 'log', 'alphaeon.log')
 # Construct the relative path to the result file
-result_file_path = os.path.join('results', 'alphaeon.csv')
+result_file_path = os.path.join('data', 'alphaeon.csv')
 
 # Set up log file
 logger.add(log_file_path, level='INFO', encoding='utf-8')

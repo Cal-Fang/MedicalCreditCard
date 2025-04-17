@@ -44,21 +44,23 @@ memory.limit(30000000)              # this is needed on some PCs to increase mem
 require(tidyverse)
 
 ## ---------------------------
-# STEP 1 
+
+
+# ----------------------------------------------- STEP 1 -----------------------------------------------
 # Load the data and drop duplicates created from scrapping process
-carecredit <- read_csv("results/carecredit.csv") %>% 
+carecredit <- read_csv("data/carecredit.csv") %>% 
   distinct() %>% 
   rename(address=address1,
          specialty=specialties) %>% 
   select(-location) 
 
-alphaeon <- read_csv("results/alphaeon.csv") %>% 
+alphaeon <- read_csv("data/alphaeon.csv") %>% 
   distinct() %>% 
   rename(address=address1,
          specialty=specialties) %>% 
   select(-location)
 
-wellsfargoHA <- read_csv("results/wellsfargoHA.csv") %>% 
+wellsfargoHA <- read_csv("data/wellsfargoHA.csv") %>% 
   distinct() %>% 
   rename(address=address1,
          specialty=specialties) %>% 
@@ -81,7 +83,7 @@ wellsfargoHA <- wellsfargoHA %>%
   distinct(address, phone, .keep_all=TRUE) 
 
 
-# STEP 2 
+# ----------------------------------------------- STEP 2 -----------------------------------------------
 # Drop all animal-related practices in carecredit and alphaeon
 carecredit <- carecredit %>% 
   filter(!grepl("Pet|Vet|Animal|Equine", specialty) & 
@@ -91,7 +93,7 @@ wellsfargoHA <- wellsfargoHA %>%
   filter(!grepl("Veterinary", specialty))
 
 
-# STEP 3
+# ----------------------------------------------- STEP 3 -----------------------------------------------
 # Split long specialty descriptions in carecredit and alphaeon to multiple rows
 carecredit <- carecredit %>% 
   separate_longer_delim(cols = specialty, delim = ", ") %>% 
@@ -107,7 +109,8 @@ alphaeon <- alphaeon %>%
   drop_na(specialty)
 
 
-# STEP 4 Regroup the specialty
+# ----------------------------------------------- STEP 3 -----------------------------------------------
+# Regroup the specialty
 # Rename some specialty for consistency
 carecredit$specialty[carecredit$specialty=="Outpatient Surgery Center"] <- "Surgery Centers"
 carecredit$specialty[carecredit$specialty=="Dermatologist"] <- "Dermatology"
@@ -145,12 +148,12 @@ regroup <- bind_rows(
   data.frame(specialty = other, specialty_re = "Unknown/Others"),
   data.frame(specialty = unrelated, specialty_re = "Unrelated"),
   data.frame(specialty = equipment, specialty_re = "Medical Equipment"),
-  data.frame(specialty = pharm, specialty_re = "Pharmacies"),
+  data.frame(specialty = pharm, specialty_re = "Pharmacy"),
   data.frame(specialty = radio, specialty_re = "Imaging & Radiology"),
-  data.frame(specialty = family, specialty_re = "Family & General Practitioner"),
-  data.frame(specialty = vascular, specialty_re = "Vascular (Vein) Surgeon"),
+  data.frame(specialty = family, specialty_re = "Family & General Practitice"),
+  data.frame(specialty = vascular, specialty_re = "Vascular Surgery"),
   data.frame(specialty = sleep, specialty_re = "Sleep Medicine"),
-  data.frame(specialty = surgery, specialty_re = "Outpatient Surgery Centers"),
+  data.frame(specialty = surgery, specialty_re = "Outpatient Surgery"),
   data.frame(specialty = rest, specialty_re = rest)
 )
 
@@ -171,7 +174,7 @@ wellsfargoHA_clean <- wellsfargoHA %>%
   filter(!specialty_re %in% c("Unrelated", "Medical Equipment", "Unknown/Others"))
 
 
-# STEP 5 
+# ----------------------------------------------- STEP 4 -----------------------------------------------
 # Bind the three dataframes
 mcc_clean <- bind_rows(list(carecredit=carecredit_clean, 
                             alphaeon=alphaeon_clean, 
@@ -187,8 +190,8 @@ mcc_clean <- mcc_clean %>%
   filter(state %in% c(state.abb, "DC"))
 
 
-# STEP 6
+# ----------------------------------------------- STEP 5 -----------------------------------------------
 # Save the data
 save(mcc_clean, 
-     file="results/cleaned.Rdata")
+     file="data/interm/cleaned.Rdata")
 

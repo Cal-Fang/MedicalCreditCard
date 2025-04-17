@@ -1,0 +1,222 @@
+---
+output: pdf_document
+knit: >
+  (function(inputFile, encoding){rmarkdown::render(inputFile, encoding=encoding, output_file="results/table1.pdf")}) 
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+
+require(fuzzyjoin)
+require(tidyverse)
+require(kableExtra)
+require(knitr)
+
+opts_chunk$set(message=FALSE, warning=FALSE)
+
+load("data/interm/cleaned.Rdata")
+```
+
+```{r specialties, include=FALSE}
+bySpe <- mcc_clean %>% 
+  group_by(specialty_re) %>% 
+  summarise(count = n())
+```
+
+```{r denominator, include=FALSE}
+input_string <- pdftools::pdf_text(pdf="https://www.iqvia.com/-/media/iqvia/pdfs/us/publication/iqvia-us-physician-specialties-market-report-2023.pdf")[2]
+
+# Extract the relevant text using regular expressions
+temp_text <- str_extract(input_string, "(RANK)([\\s\\S]*?8,128)")
+
+temp_rows <- str_split(temp_text, "\n\n")[[1]] %>% 
+  str_trim() %>% 
+  str_remove("\n")
+
+# Split each element into columns based on long spaces
+temp_columns <- str_split(temp_rows, "\\s{2,}")
+
+# Create a dataframe, skipping the first row
+denom <- as.data.frame(do.call(rbind, temp_columns[-1]))%>% 
+  mutate_all(str_trim) %>%
+  mutate(across(c("V3", "V4"), ~as.numeric(gsub(",", "", .)))) %>% 
+  select(-V1)
+
+# Assign column names
+colnames(denom) <- c("specialty_iqvia", "phyCount", "orgCount")
+
+# Pick out the specialty that appears in our cleaned data
+denomSpe <- denom %>% 
+  filter(specialty_iqvia %in% c("Internal medicine", "Family medicine", "Pediatrics", "Emergency medicine",
+                                "Anesthesiology", "Obstetrics & gynecology", "General surgery", "Diagnostic radiology",
+                                "Orthopedic surgery", "Ophthalmology", "Neurology", "Gastroenterology", "Dermatology", 
+                                "Urology", "Physical medicine & rehabilitation"))
+```
+
+```{r fuzzyjoin, include=FALSE}
+specialtyProp_iqvia <- fuzzyjoin::stringdist_join(bySpe, denomSpe, 
+                                            by=c(specialty_re = "specialty_iqvia"),
+                                            mode='left',
+                                            method="jaccard", 
+                                            distance_col='dist') %>%
+  group_by(specialty_re) %>%
+  filter(!(specialty_re == "Family & General Practitioner" & specialty_iqvia == "Physical medicine & rehabilitation")) %>% 
+  slice_min(order_by=dist, n=1) %>% 
+  filter(dist < 0.50 | specialty_re %in% c("Internist", "Imaging & Radiology")) %>% 
+  filter(!(specialty_re == "Imaging & Radiology" & specialty_iqvia == "Family medicine")) %>% 
+  filter(!specialty_re %in% c("Nephrology", "Podiatrist", "Nutritionist and Dietician", 
+                              "Allergy/Immunologist", "Endocrinology", "General Practitioner", 
+                              "Outpatient Surgery Centers", "Supplmental/Alternative Medicine", 
+                              "Colorectal Surgeon/Proctologist", "Rheumatologist", "Pharmacy",
+                              "Home Healthcare")) %>% 
+  select(-c("phyCount", "dist")) %>% 
+  mutate(prop = count / orgCount) %>% 
+  arrange(prop)
+```
+
+```{r dental, include=FALSE}
+# # You would need to obtain an API key from http://api.census.gov/data/key_signup.html) and run following code if you don't have it set already.
+# 
+# # Add key to .Renviron
+# Sys.setenv(CENSUS_KEY="TYPEYOURKEYHERE")
+# 
+# # Reload .Renviron
+# readRenviron("~/.Renviron")
+# 
+# # Obtain the office numbers from 2021 CBP data
+# CBP2021 <- censusapi::getCensus(name="cbp", vintage=2021,
+#                                 vars=c("ESTAB", "NAICS2017", "NAICS2017_LABEL"),
+#                                 region="state:*")
+# 
+# # Save it aside
+# write_csv(CBP2021, "data/cbp2021.csv")
+
+# Read in CBP 2021 record
+CBP2021 <- read_csv("data/cbp2021.csv")
+
+# Obtain the dental office number from 2021 CBP data
+dental_denom <- CBP2021 %>% 
+  filter(state <= 56) %>% # 50 states and DC correspond to the codes smaller than or equal to 56
+  filter(NAICS2017 == "6212") %>% # Dentist offices correspond to 6212 in NAICS2017 system
+  group_by(NAICS2017_LABEL) %>% 
+  summarise(orgCount = sum(ESTAB))
+
+dental <- bySpe %>% 
+  filter(specialty_re == "Dentistry") %>% 
+  cbind(dental_denom) %>% 
+  mutate(prop = count / orgCount) 
+```
+
+```{r pharm, include=FALSE}
+pharm_denom <- CBP2021 %>% 
+  filter(state <= 56) %>% # 50 states and DC correspond to the codes smaller than or equal to 56
+  filter(NAICS2017 == "446110") %>% # "Pharmacies and Drug Stores"
+  group_by(.) %>% 
+  summarise(orgCount = sum(ESTAB))
+
+pharm <- bySpe %>% 
+  filter(specialty_re == "Pharmacy") %>% 
+  cbind(pharm_denom) %>% 
+  mutate(prop = count / orgCount) 
+```
+
+```{r podia, include=FALSE}
+podiatrist_denom <- CBP2021 %>% 
+  filter(state <= 56) %>% # 50 states and DC correspond to the codes smaller than or equal to 56
+  filter(NAICS2017 == "621391") %>% # "Offices of Podiatrists"
+  group_by(NAICS2017_LABEL) %>% 
+  summarise(orgCount = sum(ESTAB))
+
+podiatrist <- bySpe %>% 
+  filter(specialty_re == "Podiatrist") %>% 
+  cbind(podiatrist_denom) %>% 
+  mutate(prop = count / orgCount) 
+```
+
+```{r medlab, include=FALSE}
+medlab_denom <- CBP2021 %>% 
+  filter(state <= 56) %>% # 50 states and DC correspond to the codes smaller than or equal to 56
+  filter(NAICS2017 == "621511") %>% # "Medical Laboratories"
+  group_by(NAICS2017_LABEL) %>% 
+  summarise(orgCount = sum(ESTAB))
+
+medlab <- bySpe %>% 
+  filter(specialty_re == "Medical Labs") %>% 
+  cbind(medlab_denom) %>% 
+  mutate(prop = count / orgCount) 
+```
+
+```{r chiro, include=FALSE}
+chrio_denom <- CBP2021 %>% 
+  filter(state <= 56) %>% # 50 states and DC correspond to the codes smaller than or equal to 56
+  filter(NAICS2017 == "621310") %>% # "Offices of Chiropractors"
+  group_by(NAICS2017_LABEL) %>% 
+  summarise(orgCount = sum(ESTAB))
+
+chrio <- bySpe %>% 
+  filter(specialty_re == "Chiropractor") %>% 
+  cbind(chrio_denom) %>% 
+  mutate(prop = count / orgCount) 
+```
+
+#  Table 1: Medical credit card prevalence by specialty
+```{r tab1, echo=FALSE}
+tab1 <- specialtyProp_iqvia %>% 
+  rbind(dental, pharm, podiatrist, medlab, chrio) %>% 
+  arrange(desc(prop)) %>% 
+  select(-NAICS2017_LABEL, -specialty_iqvia) %>% 
+  mutate(prop = round(prop * 100, 2))
+
+includeBack <- bySpe %>% 
+  filter(specialty_re %in% c("Vision Medicine", 
+                             "Cosmetic Medicine",
+                             "Outpatient Surgery",
+                             "Ear, Nose & Throat",
+                             "Behavioral Health",
+                             "Vascular Surgery",
+                             "Urgent Care / Walk-in Clinics",
+                             "Sleep Medicine",
+                             "Ear, Nose & Throat",
+                             "Allergy/Immunologist",
+                             "Speech Therapist")) %>% 
+  mutate(orgCount = NA,
+         prop = NA) %>% 
+  arrange(desc(count))
+
+rest <- bySpe %>% 
+  filter(!specialty_re %in% c(tab1$specialty_re, includeBack$specialty_re, 
+                              # "Osteopath", "Hospitals",
+                              "Audiology")) %>%
+  group_by(.) %>% 
+  summarise(count = sum(count)) %>% 
+  mutate(specialty_re = "Others",
+         orgCount = NA,
+         prop = NA)
+
+tab1 <- rbind(tab1, includeBack, rest)
+colnames(tab1) <- c("Specialty", "MCC Partner Number", "Total", "Percentage (%)")
+
+# Add a total row
+total <- mcc_clean %>% 
+  # filter(!specialty_re %in% c("Audiology", "Osteopath", "Hospitals")) %>% 
+  mutate(addressLong = paste0(address, ", ", 
+                              city, ", ",
+                              state, " ", zipcode, ", ",
+                              "USA")) %>% 
+  distinct(name, addressLong, .keep_all = TRUE) %>% 
+  nrow()
+tab1[nrow(tab1) + 1, ] <- list("Total", total, NA, NA)
+
+# Create the table
+tab1_table <- tab1 %>% 
+  kable(booktabs=TRUE, escape=FALSE, format="pipe") %>%
+  kable_styling() 
+
+# Define footnotes
+footnote_text <- c("The number of total dentistry office locations, supplemental medicine office locations, podiatrist office locations, and medical lab locations are obtained from the 2021 County Business Patterns data released by US Census Bureau. All the numbers of other total specialty office locations are obtained from the 2023 IQVIA US Physician Specialties Market insights report.", 
+                   "We cannot find reliable source of the estimate of total office number of cosmetic medicine, vision medicine, and ENT.")
+
+# Add footnotes using the add_footnote function from kableExtra
+add_footnote(tab1_table, label=footnote_text, notation="none")
+```
+

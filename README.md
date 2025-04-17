@@ -1,3 +1,5 @@
+This is the analysis record of this research letter: Bruch JD, Fang CC, Cliff BQ. Prevalence of Medical Credit Cards by Specialty. JAMA Health Forum. 2025;6(4):e250174. doi:10.1001/jamahealthforum.2025.0174
+
 # MedicalCreditCard
 A medical credit card (MCC) is designed exclusively for medical services, originally intended to cover procedures not covered by insurance, such as dental care, hearing exams, or cosmetic procedures. Over time, these cards have evolved to encompass various healthcare charges, including treatments in hospitals or from other healthcare providers. 
 

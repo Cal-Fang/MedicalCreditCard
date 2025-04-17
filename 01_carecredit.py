@@ -9,11 +9,11 @@ import tls_requests
 
 
 # Construct the relative path to the zipcodes_list.csv file
-zipcode_file_path = os.path.join('results', 'zipcodes.csv')
+zipcode_file_path = os.path.join('data', 'zipcodes.csv')
 # Construct the relative path to the log file
-log_file_path = os.path.join('results', 'carecredit.log')
+log_file_path = os.path.join('data', 'log', 'carecredit.log')
 # Construct the relative path to the result file
-result_file_path = os.path.join('results', 'carecredit.csv')
+result_file_path = os.path.join('data', 'carecredit.csv')
 
 # Set up log file
 logger.add(log_file_path, level='INFO', encoding='utf-8')

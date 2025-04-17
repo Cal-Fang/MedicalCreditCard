@@ -5,9 +5,9 @@ from uszipcode import SearchEngine
 from loguru import logger
 
 # Construct the relative path to the zipcodes_list.csv file
-zipcode_file_path = os.path.join('results', 'zipcodes.csv')
+zipcode_file_path = os.path.join('data', 'zipcodes.csv')
 # Construct the relative path to the log file
-log_file_path = os.path.join('results', 'zipcodes.log')
+log_file_path = os.path.join('data', 'log', 'zipcodes.log')
 
 
 # Obtain the zipcode list

@@ -8,11 +8,11 @@ from loguru import logger
 from parsel import Selector
 
 # Construct the relative path to the zipcodes_list.csv file
-zipcode_file_path = os.path.join('results', 'zipcodes.csv')
+zipcode_file_path = os.path.join('data', 'zipcodes.csv')
 # Construct the relative path to the log file
-log_file_path = os.path.join('results', 'wellsfargoHA.log')
+log_file_path = os.path.join('data', 'log', 'wellsfargoHA.log')
 # Construct the relative path to the result file
-result_file_path = os.path.join('results', 'wellsfargoHA.csv')
+result_file_path = os.path.join('data', 'wellsfargoHA.csv')
 
 # Set up log file
 logger.add(log_file_path, level='INFO', encoding='utf-8')
