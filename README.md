@@ -62,7 +62,16 @@ Filter out practices located in US territories, retaining only those in the 50 s
 The script is named `04_clean.R`, and the result is saved as `cleaned.Rdata`.
 
 
-## STEP 3 Analayze
+## STEP 3 Geocode and map
+To visualize the geographic distribution of medical organizations that accept medical credit cards (MCC), we created a national map using the following steps:
+
+1. Geocode all location addresses using the Google Maps API.
+2. Map the resulting coordinates onto a U.S. map.
+
+The process was implemented through two scripts—`05_geocode.R` and `06_map.R`, and the result is saved as [figure1.jpg](https://github.com/Cal-Fang/MedicalCreditCard/blob/main/results/figure1.jpg).
+
+
+## STEP 4 Analayze
 The main analysis of this project aims to describe the landscape of medical organizations that accept MCC. We made a table for this goal. 
 
 1. Medical organizations are grouped by their specialty to count the number of MCC partners in each specialty. 
@@ -70,5 +79,5 @@ The main analysis of this project aims to describe the landscape of medical orga
 3. The number of medical organizations in each specialty were then divided by the total number of corresponding medical organizations in the country for the MCC penetration rates by specialty. 
 4. These numbers were organized into a table.
 
-The script is named `05_describe.R`, and the result is saved as [tables.pdf](https://github.com/Cal-Fang/MedicalCreditCard/blob/main/results/tables.pdf).
+The script is named `07_describe.Rmd`, and the result is saved as [table1.pdf](https://github.com/Cal-Fang/MedicalCreditCard/blob/main/results/table1.pdf).
 
